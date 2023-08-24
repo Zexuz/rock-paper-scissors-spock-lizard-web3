@@ -11,3 +11,7 @@ REPORT_GAS=true npx hardhat test
 npx hardhat node
 npx hardhat run scripts/deploy.ts
 ```
+
+
+# TODO
+* Make sure the hash that the user inits the factory with is valid, and that the factory will hash the move the same way
