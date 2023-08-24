@@ -1,15 +1,17 @@
 import {ethers} from "ethers";
 import MoveSelector from "./MoveSelector.tsx";
 import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
 import useMoveStore from "../store/move.ts";
 import {Button} from "./Button.tsx";
 import useContractStore from "../store/contract.ts";
+import {useNavigate} from 'react-router-dom'
 
 function DeployContract() {
   const [contractAddress, setContractAddress] = useState<string | null>(null)
   const {setMove, createSecureRandomSalt, salt, setSalt, setOpponent, isValid, setValue, opponent, move, value} = useMoveStore();
   const {deployContract, initialize} = useContractStore();
+  const [hasDeployed, setHasDeployed] = useState(false)
+  const navigate = useNavigate()
 
 
   useEffect(() => {
@@ -52,12 +54,12 @@ function DeployContract() {
     })
 
     setContractAddress(contractAddress)
-
-    if (!window.ethereum) {
-      alert("Please install MetaMask")
-      return
-    }
+    setHasDeployed(true)
   };
+
+  const navigateToNextPage = () => {
+    navigate(`/play/${contractAddress}`)
+  }
 
   return (
     <>
@@ -87,17 +89,38 @@ function DeployContract() {
 
       <MoveSelector onMoveSelect={onMoveSelect} selectedMove={move}/>
 
-      <div className={'flex flex-row justify-center'}>
-        <Button onClick={deploy} disabled={!isValid()}>DEPLOY</Button>
-      </div>
-
-      {contractAddress && (
+      {!hasDeployed && (
         <div className={'flex flex-row justify-center'}>
-          <Link to={`/play/${contractAddress}`}>
-            <p>{`${window.location.href}play/${contractAddress}`}</p>
-          </Link>
+          <Button onClick={deploy} disabled={!isValid()}>DEPLOY</Button>
         </div>
       )}
+
+      {hasDeployed && (
+        <div className={'flex flex-row justify-center'}>
+          <Button onClick={navigateToNextPage}>Click here to go to next page</Button>
+        </div>
+      )}
+
+      {contractAddress && (
+        <div className="flex flex-col items-center space-y-4 py-8">
+          <p className="text-lg font-semibold text-gray-700">OR</p>
+          <p className="text-lg font-semibold text-gray-700">Send this link to the opponent:</p>
+          <div className="flex items-center space-x-2">
+            <p className="text-md text-blue-600 font-mono bg-gray-100 p-2 rounded-lg">
+              {`${window.location.href}play/${contractAddress}`}
+            </p>
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.href}play/${contractAddress}`);
+              }}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <p>Copy</p>
+            </button>
+          </div>
+        </div>
+      )}
+
     </>
   )
 }
