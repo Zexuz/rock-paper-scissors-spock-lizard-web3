@@ -1,8 +1,11 @@
 import {ethers} from "ethers";
 import {RPS_CONTRACT} from "../config.ts";
 import MoveSelector from "./MoveSelector.tsx";
+import {useState} from "react";
+import {Link} from "react-router-dom";
 
 function DeployContract() {
+  const [contractAddress, setContractAddress] = useState<string | null>(null)
 
   const onMoveSelect = (move: number) => {
     console.log(move)
@@ -42,14 +45,11 @@ function DeployContract() {
     localStorage.setItem('salt', salt.toString())
     localStorage.setItem('move', move.toString())
     localStorage.setItem('hash', hash.toString())
+    setContractAddress(contract.target.toString());
   }
 
   return (
     <>
-      <h1 className={'text-4xl text-center'}>
-        Rock Paper Scissors Lizard Spock
-      </h1>
-
       <MoveSelector onMoveSelect={onMoveSelect}/>
 
       <div className={'flex flex-row justify-center'}>
@@ -65,6 +65,14 @@ function DeployContract() {
       <div className={'flex flex-row justify-center'}>
         <button className={'border-2 border-gray-500 rounded-lg p-2 m-2'} onClick={deploy}>DEPLOY</button>
       </div>
+
+      {contractAddress && (
+        <div className={'flex flex-row justify-center'}>
+          <Link to={`/play/${contractAddress}`}>
+            <p>{`${window.location.href}play/${contractAddress}`}</p>
+          </Link>
+        </div>
+      )}
     </>
   )
 }
