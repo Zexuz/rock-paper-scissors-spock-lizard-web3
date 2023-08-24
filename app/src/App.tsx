@@ -1,5 +1,6 @@
 import Deploy from "./Components/Deploy.tsx";
 import PlayMove from "./Components/PlayMove.tsx";
+import SolveGame from "./Components/SolveGame.tsx";
 
 
 function App() {
@@ -8,6 +9,7 @@ function App() {
     <>
       <Deploy/>
       <PlayMove/>
+      <SolveGame/>
     </>
   )
 }

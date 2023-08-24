@@ -12,9 +12,8 @@ interface GameInfo {
 
 function PlayMove() {
 
-
   const onClick = async () => {
-    const contractAddress = '0x6dc409f21086953de6fB0EF0dDbFBD7422490E0e'
+    const contractAddress = localStorage.getItem('contractAddress') as string
     const abi = RPS_CONTRACT.abi;
     const provider = new ethers.BrowserProvider(window.ethereum);
 
@@ -24,7 +23,7 @@ function PlayMove() {
 
     const move = 1 // ROCK
 
-    const tx = await contract.play(move, {value: ethers.parseEther("0.0001")});
+    const tx = await contract.play(move, {value: ethers.parseEther("0.1")});
     console.log(`Transaction hash: ${tx.hash}`);
   }
 

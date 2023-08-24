@@ -28,13 +28,20 @@ function DeployContract() {
     const contractFactory = new ethers.ContractFactory(RPS_CONTRACT.abi, RPS_CONTRACT.bytecode, signer);
 
     const move = 2 // PAPER
-    const salt = "123"
-    const opponent = "0x80F8696E0719570341F978e86Fc16A7D338353DF"
-    const hash = ethers.solidityPackedKeccak256(["uint", "string"], [move, salt])
+    const salt = ethers.toBigInt("123")
+    const opponent = "0x03c29bB357384623f33001418d7aD41E1f3f22B5"
+    const hash = ethers.solidityPackedKeccak256(["uint8", "uint256"], [move, salt])
     console.log(`Hash: ${hash}`)
 
-    const contract = await contractFactory.deploy(hash, opponent);
-    console.log(`Deployed contract at ${contract.target}`)
+    const contract = await contractFactory.deploy(hash, opponent,{
+      value: ethers.parseEther("0.1")
+    });
+    console.log(`Deployed contract at ${contract.target}`);
+
+    localStorage.setItem('contractAddress', contract.target.toString())
+    localStorage.setItem('salt', salt.toString())
+    localStorage.setItem('move', move.toString())
+    localStorage.setItem('hash', hash.toString())
   }
 
   return (
