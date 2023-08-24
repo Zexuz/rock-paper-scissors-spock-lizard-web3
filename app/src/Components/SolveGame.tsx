@@ -1,15 +1,26 @@
 import {ethers} from "ethers";
 import {RPS_CONTRACT} from "../config.ts";
-import useContractData from "../hooks/useGameInfo.ts";
 import {useParams} from "react-router-dom";
 import {Button} from "./Button.tsx";
 import {Countdown} from "./Countdown.tsx";
+import useContractStore from "../store/contract.ts";
+import Loading from "./Loading.tsx";
+import {useEffect} from "react";
+import MoveSelector from "./MoveSelector.tsx";
 
 function SolveGame() {
   const {contractAddress} = useParams<string>()
-  const {gameInfo: gameData, currentUser} = useContractData(contractAddress);
+  const {gameInfo: gameData, currentUser, setContractAddress, initialize, reloadGameInfo} = useContractStore();
 
-  if (!gameData) return (<div>Loading...</div>);
+  useEffect(() => {
+    (async () => {
+      setContractAddress(contractAddress!)
+      await initialize()
+      await reloadGameInfo()
+    })()
+  }, []);
+
+  if (!gameData) return (<Loading/>)
 
   const yourMove = Number(localStorage.getItem('move') as string);
   const yourSalt = ethers.toBigInt(localStorage.getItem('salt') as string);
@@ -33,26 +44,46 @@ function SolveGame() {
 
     const contract = new ethers.Contract(contractAddress!, RPS_CONTRACT.abi, signer);
 
-    const tx = await contract.j1Timeout();
-    console.log(`Transaction hash: ${tx.hash}`);
+    await contract.j1Timeout();
   }
 
-  const renderButton = () => {
-    if(gameIsOver) return (<p>Game is over</p>);
+  const renderActions = () => {
+    if (gameIsOver) return (<p>Game is over</p>);
 
     if (currentUser === gameData.player1) {
       return (
-        <div className={'flex flex-row justify-center'}>
-          <Button onClick={solve}>Solve</Button>
-        </div>
+        <>
+          <div className={'flex flex-row justify-center'}>
+            <input className={'border-2 border-gray-500 rounded-lg p-2 m-2 w-1/3'}
+                   type="text"
+                   placeholder={'Enter your salt'}
+                   value={yourSalt.toString()}
+                   onChange={(e) => onSaltChange(e.target.value)}/>
+          </div>
+
+          <MoveSelector onMoveSelect={setMove} selectedMove={yourMove}/>
+
+          <div className={'flex flex-row justify-center'}>
+            <Button onClick={solve}>Solve</Button>
+          </div>
+
+        </>
       )
     }
 
-    if(currentUser === gameData.player2){
+    if (currentUser === gameData.player2) {
       return <Button onClick={claimTimeout}>Claim timeout</Button>
     }
 
     return <p>Not your game</p>
+  }
+
+  const onSaltChange = (salt: string) => {
+    console.log(salt);
+  }
+
+  const setMove = (move: number) => {
+    console.log(move);
   }
 
   const timeLeft = gameData.timeout - (Math.floor(Date.now() / 1000) - gameData.lastAction);
@@ -94,21 +125,19 @@ function SolveGame() {
           </div>
           <div className="w-1/2 px-2 mb-4">
             <label className="block text-gray-600">Last Action</label>
-            <span className="text-gray-800">{new Date(gameData.lastAction * 1000).toUTCString()}</span>
+            <span className="text-gray-800">{new Date(gameData.lastAction * 1000).toLocaleString()}</span>
           </div>
           <div className="w-1/2 px-2 mb-4">
             <label className="block text-gray-600">Time left to solve</label>
-            <span className="text-gray-800"><Countdown timeLeft={timeLeft} /></span>
+            <span className="text-gray-800"><Countdown timeLeft={timeLeft}/></span>
           </div>
         </div>
       </div>
 
-
-      <div className={'flex flex-row justify-center'}>
-        {renderButton()}
-      </div>
+      {renderActions()}
     </>
   )
 }
+
 
 export default SolveGame

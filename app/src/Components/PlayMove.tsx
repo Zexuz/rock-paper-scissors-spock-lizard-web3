@@ -1,39 +1,36 @@
 import {ethers} from "ethers";
 import MoveSelector from "./MoveSelector.tsx";
-import {RPS_CONTRACT} from "../config.ts";
 import {Link, useParams} from "react-router-dom";
 import {Countdown} from "./Countdown.tsx";
 import {Button} from "./Button.tsx";
-import useContractData from "../hooks/useGameInfo.ts";
+import useContractStore from "../store/contract.ts";
+import {useEffect, useState} from "react";
+import Loading from "./Loading.tsx";
 
 
 function PlayMove() {
   const {contractAddress} = useParams<string>()
-  const {gameInfo, currentUser} = useContractData(contractAddress);
+  const {gameInfo, currentUser, reloadGameInfo, initialize, setContractAddress, timeOutForPlayer, play} = useContractStore();
+  const [move, setMove] = useState(0);
+
+  useEffect(() => {
+    (async () => {
+      setContractAddress(contractAddress!)
+      await initialize()
+      await reloadGameInfo()
+    })()
+  }, []);
 
   const onClick = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-
-    const contract = new ethers.Contract(contractAddress!, RPS_CONTRACT.abi, signer);
-
-    const move = 1 // ROCK
-
-    const tx = await contract.play(move, {value: ethers.parseEther("0.1")});
-    console.log(`Transaction hash: ${tx.hash}`);
+    if (!gameInfo) return;
+    await play(move, ethers.parseEther(gameInfo.stake));
   }
 
   const timeOut = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-
-    const contract = new ethers.Contract(contractAddress!, RPS_CONTRACT.abi, signer);
-
-    const tx = await contract.j2Timeout();
-    console.log(`Transaction hash: ${tx.hash}`);
+    await timeOutForPlayer(2);
   }
 
-  if (!gameInfo) return (<div>Loading...</div>)
+  if (!gameInfo) return (<Loading/>)
 
   const timeLeft = gameInfo.timeout - (Math.floor(Date.now() / 1000) - gameInfo.lastAction);
   const canPlayer1Timeout = currentUser === gameInfo.player1 && timeLeft <= 0;
@@ -54,8 +51,7 @@ function PlayMove() {
           <Countdown timeLeft={gameInfo.timeout - (Math.floor(Date.now() / 1000) - gameInfo.lastAction)}/>
         </div>
 
-        <MoveSelector onMoveSelect={() => {
-        }}/>
+        <MoveSelector onMoveSelect={setMove}/>
 
         <div className={"flex justify-center space-x-8"}>
           <Button disabled={!canPlayer1Timeout} onClick={timeOut}>Timeout for Player 1</Button>
