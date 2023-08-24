@@ -4,7 +4,7 @@ import MoveSelector from "./MoveSelector.tsx";
 
 function DeployContract() {
 
-  const onMoveSelect = (move: string) => {
+  const onMoveSelect = (move: number) => {
     console.log(move)
   }
 
@@ -27,10 +27,10 @@ function DeployContract() {
 
     const contractFactory = new ethers.ContractFactory(RPS_CONTRACT.abi, RPS_CONTRACT.bytecode, signer);
 
-    const move = "Rock"
+    const move = 2 // PAPER
     const salt = "123"
     const opponent = "0x80F8696E0719570341F978e86Fc16A7D338353DF"
-    const hash = ethers.solidityPackedKeccak256(["string", "string"], [move, salt])
+    const hash = ethers.solidityPackedKeccak256(["uint", "string"], [move, salt])
     console.log(`Hash: ${hash}`)
 
     const contract = await contractFactory.deploy(hash, opponent);
