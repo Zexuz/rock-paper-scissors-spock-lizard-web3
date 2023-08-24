@@ -1,7 +1,7 @@
-import Deploy from "./Components/Deploy.tsx";
-import PlayMove from "./Components/PlayMove.tsx";
+import Deploy from "./components/Deploy.tsx";
+import PlayMove from "./components/PlayMove.tsx";
 import {Outlet, Route, Routes} from "react-router-dom";
-import SolveGame from "./Components/SolveGame.tsx";
+import SolveGame from "./components/SolveGame.tsx";
 
 
 function App() {
