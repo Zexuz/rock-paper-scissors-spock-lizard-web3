@@ -1,16 +1,18 @@
-import {ethers} from "ethers";
-import {RPS_CONTRACT} from "../config.ts";
 import {useParams} from "react-router-dom";
 import {Button} from "./Button.tsx";
 import {Countdown} from "./Countdown.tsx";
 import useContractStore from "../store/contract.ts";
 import Loading from "./Loading.tsx";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import MoveSelector from "./MoveSelector.tsx";
+import {loadGame} from "../lib/storage.ts";
 
 function SolveGame() {
   const {contractAddress} = useParams<string>()
-  const {gameInfo: gameData, currentUser, setContractAddress, initialize, reloadGameInfo} = useContractStore();
+  const {gameInfo: gameData, currentUser, setContractAddress, initialize, reloadGameInfo, timeOutForPlayer, solve} = useContractStore();
+  const game = loadGame(); // Only reason game could be null is if the user clears the cache, or if they are using a different browser
+  const [salt, setSalt] = useState<number>(game?.salt || 0);
+  const [move, setMove] = useState<number>(game?.move || 0);
 
   useEffect(() => {
     (async () => {
@@ -22,83 +24,34 @@ function SolveGame() {
 
   if (!gameData) return (<Loading/>)
 
-  const yourMove = Number(localStorage.getItem('move') as string);
-  const yourSalt = ethers.toBigInt(localStorage.getItem('salt') as string);
   const gameIsOver = gameData.c2Move > 0 && gameData.stake == '0.0';
+  const timeLeft = gameData.timeout - (Math.floor(Date.now() / 1000) - gameData.lastAction);
 
-  const solve = async () => {
-    const abi = RPS_CONTRACT.abi;
-    const provider = new ethers.BrowserProvider(window.ethereum);
-
-    const signer = await provider.getSigner();
-
-    const contract = new ethers.Contract(contractAddress!, abi, signer);
-
-    const tx = await contract.solve(yourMove, yourSalt);
-    console.log(`Transaction hash: ${tx.hash}`);
+  const onSolve = async () => {
+    await solve(move, salt);
   }
 
   const claimTimeout = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-
-    const contract = new ethers.Contract(contractAddress!, RPS_CONTRACT.abi, signer);
-
-    await contract.j1Timeout();
-  }
-
-  const renderActions = () => {
-    if (gameIsOver) return (<p>Game is over</p>);
-
-    if (currentUser === gameData.player1) {
-      return (
-        <>
-          <div className={'flex flex-row justify-center'}>
-            <input className={'border-2 border-gray-500 rounded-lg p-2 m-2 w-1/3'}
-                   type="text"
-                   placeholder={'Enter your salt'}
-                   value={yourSalt.toString()}
-                   onChange={(e) => onSaltChange(e.target.value)}/>
-          </div>
-
-          <MoveSelector onMoveSelect={setMove} selectedMove={yourMove}/>
-
-          <div className={'flex flex-row justify-center'}>
-            <Button onClick={solve}>Solve</Button>
-          </div>
-
-        </>
-      )
-    }
-
-    if (currentUser === gameData.player2) {
-      return <Button onClick={claimTimeout}>Claim timeout</Button>
-    }
-
-    return <p>Not your game</p>
+    await timeOutForPlayer(1);
   }
 
   const onSaltChange = (salt: string) => {
-    console.log(salt);
+    const saltNumber = Number(salt);
+    if (isNaN(saltNumber)) {
+      console.error("Salt is not a number")
+      return;
+    }
+
+    setSalt(saltNumber);
   }
 
-  const setMove = (move: number) => {
-    console.log(move);
+  const onMoveChanged = (move: number) => {
+    setMove(move);
   }
 
-  const timeLeft = gameData.timeout - (Math.floor(Date.now() / 1000) - gameData.lastAction);
 
   return (
     <>
-      <div className={'flex flex-row justify-center'}>
-        <h2 className={'text-2xl text-center'}>
-          Your move: {yourMove}
-        </h2>
-        <h2 className={'text-2xl text-center'}>
-          Your salt: {yourSalt.toString()}
-        </h2>
-      </div>
-
       <div className="p-4 bg-gray-100 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold mb-4 text-center">Game Information</h2>
 
@@ -134,9 +87,45 @@ function SolveGame() {
         </div>
       </div>
 
-      {renderActions()}
+      {gameIsOver && (
+        <div className="text-center bg-red-100 p-4 rounded-md mb-4">
+          <p className="text-red-600 text-2xl font-bold">Game is over</p>
+        </div>
+      )}
+
+      {(currentUser === gameData.player1 && !gameIsOver) && (
+        <>
+          <div className="flex flex-row justify-center mb-4">
+            <input
+              className="border-2 border-blue-500 rounded-lg p-2 w-1/3 focus:outline-none focus:border-blue-700"
+              type="text"
+              placeholder="Enter your salt"
+              value={salt.toString()}
+              onChange={(e) => onSaltChange(e.target.value)}
+            />
+          </div>
+
+          <MoveSelector onMoveSelect={onMoveChanged} selectedMove={move}/>
+
+          <div className="flex flex-row justify-center mt-4">
+            <Button onClick={onSolve}>Solve</Button>
+          </div>
+        </>
+      )}
+
+      {(currentUser === gameData.player2 && !gameIsOver) && (
+        <div className="flex flex-row justify-center mt-4">
+          <Button onClick={claimTimeout} disabled={timeLeft > 0}>Claim timeout</Button>
+        </div>
+      )}
+
+      {currentUser !== gameData.player1 && currentUser !== gameData.player2 && (
+        <div className="text-center bg-yellow-100 p-4 rounded-md mb-4">
+          <p className="text-yellow-600 text-2xl font-bold">Not your game</p>
+        </div>
+      )}
     </>
-  )
+  );
 }
 
 
