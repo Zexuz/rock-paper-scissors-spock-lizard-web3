@@ -5,6 +5,7 @@ import useMoveStore from "../store/move.ts";
 import {Button} from "./Button.tsx";
 import useContractStore from "../store/contract.ts";
 import {useNavigate} from 'react-router-dom'
+import {loadGame, saveGame} from "../lib/storage.ts";
 
 function DeployContract() {
   const [contractAddress, setContractAddress] = useState<string | null>(null)
@@ -12,6 +13,7 @@ function DeployContract() {
   const {deployContract, initialize} = useContractStore();
   const [hasDeployed, setHasDeployed] = useState(false)
   const navigate = useNavigate()
+  const lastGame = loadGame();
 
 
   useEffect(() => {
@@ -55,10 +57,19 @@ function DeployContract() {
 
     setContractAddress(contractAddress)
     setHasDeployed(true)
+    saveGame({
+      salt,
+      move,
+      contractAddress
+    });
   };
 
   const navigateToNextPage = () => {
     navigate(`/play/${contractAddress}`)
+  }
+
+  const navigateToLastGame = () => {
+    navigate(`/play/${lastGame?.contractAddress}`)
   }
 
   return (
@@ -118,6 +129,18 @@ function DeployContract() {
               <p>Copy</p>
             </button>
           </div>
+        </div>
+      )}
+
+      {lastGame && (
+        <div className={'flex flex-row justify-center py-8'}>
+          <Button onClick={navigateToLastGame}>Click here to go to last game {lastGame.contractAddress}</Button>
+        </div>
+      )}
+
+      {!lastGame && (
+        <div className={'flex flex-row justify-center py-8'}>
+          <p>You have no saved game</p>
         </div>
       )}
 

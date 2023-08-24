@@ -12,7 +12,7 @@ function PlayMove() {
   const {contractAddress} = useParams<string>()
   const {gameInfo, currentUser, reloadGameInfo, initialize, setContractAddress, timeOutForPlayer, play} = useContractStore();
   const [move, setMove] = useState(gameInfo?.c2Move || 0);
-  const [havePlayed, setHavePlayed] = useState(gameInfo?.c2Move !== 0);
+  const [havePlayed, setHavePlayed] = useState(gameInfo?.c2Move === 0);
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -48,8 +48,7 @@ function PlayMove() {
     <>
       <div className="p-4 space-y-4">
 
-        <h1 className="text-3xl font-semibold text-center text-blue-600">Play move</h1>
-        <h2 className="text-xl font-medium text-center text-blue-500">Contract address: {contractAddress}</h2>
+        <h1 className="text-3xl font-semibold text-center text-blue-600">Opponents Move</h1>
 
         <div className="text-center">
           <h2 className="text-xl font-medium text-gray-700">Player 1: {gameInfo.player1} vs Player
