@@ -1,6 +1,6 @@
 import {ethers} from "ethers";
 import MoveSelector from "./MoveSelector.tsx";
-import {Link, useParams} from "react-router-dom";
+import { useNavigate, useParams} from "react-router-dom";
 import {Countdown} from "./Countdown.tsx";
 import {Button} from "./Button.tsx";
 import useContractStore from "../store/contract.ts";
@@ -11,7 +11,9 @@ import Loading from "./Loading.tsx";
 function PlayMove() {
   const {contractAddress} = useParams<string>()
   const {gameInfo, currentUser, reloadGameInfo, initialize, setContractAddress, timeOutForPlayer, play} = useContractStore();
-  const [move, setMove] = useState(0);
+  const [move, setMove] = useState(gameInfo?.c2Move || 0);
+  const [havePlayed, setHavePlayed] = useState(gameInfo?.c2Move !== 0);
+  const navigate = useNavigate()
 
   useEffect(() => {
     (async () => {
@@ -24,10 +26,15 @@ function PlayMove() {
   const onClick = async () => {
     if (!gameInfo) return;
     await play(move, ethers.parseEther(gameInfo.stake));
+    setHavePlayed(true);
   }
 
   const timeOut = async () => {
     await timeOutForPlayer(2);
+  }
+
+  const navigateToNextPage = () => {
+    navigate(`/play/${contractAddress}/solve`)
   }
 
   if (!gameInfo) return (<Loading/>)
@@ -51,7 +58,7 @@ function PlayMove() {
           <Countdown timeLeft={gameInfo.timeout - (Math.floor(Date.now() / 1000) - gameInfo.lastAction)}/>
         </div>
 
-        <MoveSelector onMoveSelect={setMove}/>
+        <MoveSelector onMoveSelect={setMove} selectedMove={move}/>
 
         <div className={"flex justify-center space-x-8"}>
           <Button disabled={!canPlayer1Timeout} onClick={timeOut}>Timeout for Player 1</Button>
@@ -60,16 +67,14 @@ function PlayMove() {
         <div className="text-center">
           <Button
             onClick={onClick}
-            disabled={disabled || haveC2Moved}
+            disabled={disabled || haveC2Moved || !move}
           >
             Commit move
           </Button>
         </div>
-        {haveC2Moved && (
+        {(haveC2Moved || havePlayed) && (
           <div className={'flex flex-row justify-center'}>
-            <Link to={`/play/${contractAddress}/solve`}>
-              <p>Solve</p>
-            </Link>
+            <Button onClick={navigateToNextPage}>Click here to go to next page</Button>
           </div>
         )}
       </div>
