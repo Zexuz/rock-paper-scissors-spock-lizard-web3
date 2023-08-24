@@ -1,5 +1,5 @@
 interface ButtonProps {
-  disabled: boolean,
+  disabled?: boolean,
   onClick: () => void
   children?: React.ReactNode
 }

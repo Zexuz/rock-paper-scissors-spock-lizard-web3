@@ -1,8 +1,3 @@
-export const HTTP_URL = "https://sepolia.infura.io/v3/9a3d514e9cf64b56ae36c14f75ffc153";
-export const WSS_URL = "wss://sepolia.infura.io/ws/v3/9a3d514e9cf64b56ae36c14f75ffc153";
-
-
-
 export const RPS_CONTRACT = {
   "_format": "hh-sol-artifact-1",
   "contractName": "RPS",

@@ -22,7 +22,7 @@ export function Countdown({timeLeft}: CountdownProps) {
 
   return (
     <div className="text-lg text-gray-600">
-      <p>Time remaining: {minutesString}m {secondsString}s</p>
+      <p>{minutesString}m {secondsString}s</p>
     </div>
   );
 }

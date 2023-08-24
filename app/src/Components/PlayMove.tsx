@@ -2,56 +2,14 @@ import {ethers} from "ethers";
 import MoveSelector from "./MoveSelector.tsx";
 import {RPS_CONTRACT} from "../config.ts";
 import {Link, useParams} from "react-router-dom";
-import {useEffect, useState} from "react";
 import {Countdown} from "./Countdown.tsx";
 import {Button} from "./Button.tsx";
+import useContractData from "../hooks/useGameInfo.ts";
 
-
-interface GameInfo {
-  player1: string,
-  player2: string,
-  c1Hash: string,
-  c2Move: number,
-  stake: string,
-  timeout: number,
-  lastAction: number
-}
 
 function PlayMove() {
   const {contractAddress} = useParams<string>()
-  const [gameInfo, setGameInfo] = useState<GameInfo | null>(null)
-  const [currentUser, setCurrentUser] = useState<string | null>(null)
-
-  useEffect(() => {
-    (async () => {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const user = await signer.getAddress();
-      setCurrentUser(user);
-
-      const contract = new ethers.Contract(contractAddress!, RPS_CONTRACT.abi, provider);
-
-      const j1 = await contract.j1();
-      const j2 = await contract.j2();
-      const c1Hash = await contract.c1Hash();
-      const c2 = await contract.c2();
-      const stake = await contract.stake();
-      const timeout = await contract.TIMEOUT();
-      const lastAction = await contract.lastAction();
-
-      console.log(j1, j2, c1Hash, stake, timeout, lastAction)
-
-      setGameInfo({
-        player1: j1,
-        player2: j2,
-        c1Hash: c1Hash,
-        c2Move: Number(c2),
-        stake: ethers.formatEther(stake),
-        timeout: Number(timeout),
-        lastAction: Number(lastAction)
-      })
-    })();
-  }, []);
+  const {gameInfo, currentUser} = useContractData(contractAddress);
 
   const onClick = async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
