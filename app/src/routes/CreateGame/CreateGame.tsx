@@ -1,27 +1,23 @@
-import {ethers} from "ethers";
-import {useEffect, useState} from "react";
-import useMoveStore from "../../store/move.ts";
+import {BigNumberish, ethers} from "ethers";
+import {useState} from "react";
 import useContractStore from "../../store/contract.ts";
 import {useNavigate} from "react-router-dom";
 import {loadGame, saveGame} from "../../lib/storage.ts";
 import MoveSelector from "../../components/MoveSelector.tsx";
 import {Button} from "../../components/Button.tsx";
+import {generateSecureRandomSalt} from "../../lib/utils.ts";
 
 function CreateGame() {
   const [contractAddress, setContractAddress] = useState<string | null>(null)
-  const {setMove, createSecureRandomSalt, salt, setSalt, setOpponent, isValid, setValue, opponent, move, value} = useMoveStore();
-  const {deployContract, initialize} = useContractStore();
   const [hasDeployed, setHasDeployed] = useState(false)
+  const [salt, setSalt] = useState(generateSecureRandomSalt())
+  const [move, setMove] = useState(0)
+  const [opponent, setOpponent] = useState("")
+  const [value, setValue] = useState<BigNumberish>(0)
   const navigate = useNavigate()
   const lastGame = loadGame();
 
-
-  useEffect(() => {
-    (async () => {
-      createSecureRandomSalt()
-      await initialize()
-    })()
-  }, []);
+  const {deployContract} = useContractStore();
 
   const onMoveSelect = (move: number) => {
     setMove(move)
@@ -72,6 +68,12 @@ function CreateGame() {
     navigate(`/play/${lastGame?.contractAddress}`)
   }
 
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(`${window.location.href}play/${contractAddress}`);
+  }
+
+  const isValid = move > 0 && salt > 0 && opponent.length > 0;
+
   return (
     <>
       <div className={'flex flex-row justify-center'}>
@@ -102,7 +104,7 @@ function CreateGame() {
 
       {!hasDeployed && (
         <div className={'flex flex-row justify-center'}>
-          <Button onClick={deploy} disabled={!isValid()}>DEPLOY</Button>
+          <Button onClick={deploy} disabled={!isValid}>DEPLOY</Button>
         </div>
       )}
 
@@ -121,9 +123,7 @@ function CreateGame() {
               {`${window.location.href}play/${contractAddress}`}
             </p>
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(`${window.location.href}play/${contractAddress}`);
-              }}
+              onClick={copyToClipboard}
               className="text-blue-600 hover:text-blue-800"
             >
               <p>Copy</p>

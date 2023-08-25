@@ -7,15 +7,12 @@ interface ContractStore {
   contractAddress: string | null;
   setContractAddress: (contractAddress: string) => void;
   currentUser: string | null;
-  provider: ethers.AbstractProvider | null;
-  signer: ethers.JsonRpcSigner | null;
   gameInfo: GameInfo | null;
   reloadGameInfo: () => Promise<void>;
   timeOutForPlayer: (player: number) => Promise<void>;
   solve: (move: number, salt: BigNumberish) => Promise<void>;
   play: (move: number, value: BigNumberish) => Promise<void>;
   deployContract: (info: DeployContractParams) => Promise<string>;
-  initialize: () => Promise<void>;
 }
 
 
@@ -30,11 +27,9 @@ const useContractStore = create<ContractStore>((set, get) => ({
     contractAddress: null,
     setContractAddress: (contractAddress) => set({contractAddress}),
     currentUser: null,
-    provider: null,
-    signer: null,
     gameInfo: null,
     timeOutForPlayer: async (player) => {
-      const signer = get().signer;
+      const signer = await getSigner();
 
       if (!signer) {
         console.error("Signer not set!");
@@ -58,7 +53,7 @@ const useContractStore = create<ContractStore>((set, get) => ({
       console.error("Invalid player")
     },
     play: async (move, value) => {
-      const signer = get().signer;
+      const signer = await getSigner();
 
       if (!signer) {
         console.error("Signer not set!");
@@ -71,7 +66,7 @@ const useContractStore = create<ContractStore>((set, get) => ({
       await tx.wait();
     },
     solve: async (move, salt) => {
-      const signer = get().signer;
+      const signer = await getSigner();
 
       if (!signer) {
         console.error("Signer not set!");
@@ -85,7 +80,7 @@ const useContractStore = create<ContractStore>((set, get) => ({
 
     },
     deployContract: async (info: DeployContractParams): Promise<string> => {
-      const signer = get().signer;
+      const signer = await getSigner();
 
       if (!signer) {
         console.error("Signer not set!");
@@ -103,7 +98,7 @@ const useContractStore = create<ContractStore>((set, get) => ({
       return contract.target.toString();
     },
     reloadGameInfo: async () => {
-      const provider = get().provider!;
+      const provider = getProvider();
       const contractAddress = get().contractAddress!;
 
       const contract = new ethers.Contract(contractAddress, RPS_CONTRACT.abi, provider);
@@ -128,25 +123,16 @@ const useContractStore = create<ContractStore>((set, get) => ({
 
       set({gameInfo});
     },
-    initialize: async () => {
-      if (get().provider != null) {
-        return;
-      }
-
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      set({provider});
-
-      if (get().signer != null) {
-        return;
-      }
-
-      const signer = await provider.getSigner();
-      set({signer});
-
-      const user = await signer.getAddress();
-      set({currentUser: user});
-    }
   }
 ));
+
+const getProvider = () => {
+  return new ethers.BrowserProvider(window.ethereum);
+}
+
+const getSigner = async () => {
+  const provider = getProvider();
+  return await provider.getSigner();
+}
 
 export default useContractStore;
