@@ -20,8 +20,8 @@ npx hardhat run scripts/deploy.ts
 * Even tho there was no CSS (and UX?) requirement, I could not help myself and added some CSS to make it look a little better, even tho it took away some time from the actual logic.
 * I assume there is a reason there is no events emitted from the contract, so the user focuses on logic and code, and not the UX to change button texts once an "event" happens.
 
-## How to play (strategy)
-In a perfect world where no outside event could impact this game, the best strategy to play is either not to play at all, or to choose moves %100 randomly.
+## How to play (What is the Mixed strategy Nash equilibria of this game?)
+In a perfect world where no outside event could impact this game, the best strategy to play is either not to play at all, or to choose moves %100 randomly, since both players have the same chance of winning, losing, or tying.
 There are a couple of non-zero chances that could happen that would make this game not %100 random, and therefore exploitable.
 * The other player is not playing randomly
 * The other player is not using a secure salt
