@@ -12,23 +12,25 @@ npx hardhat node
 npx hardhat run scripts/deploy.ts
 ```
 
+Use Sepolia network to test the contract. 
+
 ## Notes
 * All `console.error` would have been toasts, or snackbars, or something else, but I didn't want to spend the time to set that up.
-* In hindsight, I should have used a different for state logic, like redux since using zustard still requires the use of `useEffects`, and I'm not sure if that's the best way to do it. (Only when reloading the page, which you do since there are no events to listen for in the smart contract), I believe using redux would be better since then one event could trigger another one, instead of using `useEffects` and having to wait for the state to change.
 * The deployers salt is generated automatically, and stored in local storage, so that if the user uses our secure salt, it gets stored in the browser, but also have the option to use their own salt, which they might remember better.
-* We would also wait for the transaction to be completed before we move on to the next page
+* I would also like to wait for the transaction to be completed before we move on to the next page
 * Even tho there was no CSS (and UX?) requirement, I could not help myself and added some CSS to make it look a little better, even tho it took away some time from the actual logic.
 * I assume there is a reason there is no events emitted from the contract, so the user focuses on logic and code, and not the UX to change button texts once an "event" happens.
 
 ## How to play (What is the Mixed strategy Nash equilibria of this game?)
 In a perfect world where no outside event could impact this game, the best strategy to play is either not to play at all, or to choose moves %100 randomly, since both players have the same chance of winning, losing, or tying.
-There are a couple of non-zero chances that could happen that would make this game not %100 random, and therefore exploitable.
+
+However, there are a couple of non-zero chances that could happen that would make this game not %100 random, and therefore exploitable.
 * The other player is not playing randomly
 * The other player is not using a secure salt
 * The creator forgets to solve before the deadline
 * The creator forgets the salt
 
-### Breakdown (Game theory) 
+### Breakdown
 
 Chance of a tie:
 1/5 (since there are 5 moves and any move has a 1/5 chance of being selected by the other player)

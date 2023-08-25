@@ -12,8 +12,8 @@ function SolveGame() {
   const {
     gameInfo: gameData,
     currentUser,
+    getCurrentUser,
     setContractAddress,
-    initialize,
     reloadGameInfo,
     timeOutForPlayer,
     solve
@@ -24,8 +24,8 @@ function SolveGame() {
 
   useEffect(() => {
     (async () => {
+      await getCurrentUser()
       setContractAddress(contractAddress!)
-      await initialize()
       await reloadGameInfo()
     })()
   }, []);
@@ -64,34 +64,13 @@ function SolveGame() {
         <h2 className="text-2xl font-bold mb-4 text-center">Game Information</h2>
 
         <div className="flex flex-wrap -mx-2">
-          <div className="w-1/2 px-2 mb-4">
-            <label className="block text-gray-600">Player 1</label>
-            <span className="text-gray-800">{gameData.player1}</span>
-          </div>
-          <div className="w-1/2 px-2 mb-4">
-            <label className="block text-gray-600">Player 2</label>
-            <span className="text-gray-800">{gameData.player2}</span>
-          </div>
-          <div className="w-1/2 px-2 mb-4">
-            <label className="block text-gray-600">C1 Hash</label>
-            <span className="text-gray-800">{gameData.c1Hash}</span>
-          </div>
-          <div className="w-1/2 px-2 mb-4">
-            <label className="block text-gray-600">C2 Move</label>
-            <span className="text-gray-800">{gameData.c2Move}</span>
-          </div>
-          <div className="w-1/2 px-2 mb-4">
-            <label className="block text-gray-600">Stake</label>
-            <span className="text-gray-800">{gameData.stake} ETH</span>
-          </div>
-          <div className="w-1/2 px-2 mb-4">
-            <label className="block text-gray-600">Last Action</label>
-            <span className="text-gray-800">{new Date(gameData.lastAction * 1000).toLocaleString()}</span>
-          </div>
-          <div className="w-1/2 px-2 mb-4">
-            <label className="block text-gray-600">Time left to solve</label>
-            <span className="text-gray-800"><Countdown timeLeft={timeLeft}/></span>
-          </div>
+          <GameInfoField label="Player 1" data={gameData.player1}/>
+          <GameInfoField label="Player 2" data={gameData.player2}/>
+          <GameInfoField label="C1 Hash" data={gameData.c1Hash}/>
+          <GameInfoField label="C2 Move" data={gameData.c2Move}/>
+          <GameInfoField label="Stake" data={`${gameData.stake} ETH`}/>
+          <GameInfoField label="Last Action" data={new Date(gameData.lastAction * 1000).toLocaleString()}/>
+          <GameInfoField label="Time left to solve" data={<Countdown timeLeft={timeLeft}/>}/>
         </div>
       </div>
 
@@ -135,6 +114,13 @@ function SolveGame() {
     </>
   );
 }
+
+const GameInfoField = ({label, data}: { label: string, data: string | number | React.ReactNode }) => (
+  <div className="w-1/2 px-2 mb-4">
+    <label className="block text-gray-600">{label}</label>
+    <span className="text-gray-800">{data}</span>
+  </div>
+);
 
 
 export default SolveGame

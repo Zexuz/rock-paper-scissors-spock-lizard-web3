@@ -7,6 +7,7 @@ interface ContractStore {
   contractAddress: string | null;
   setContractAddress: (contractAddress: string) => void;
   currentUser: string | null;
+  getCurrentUser: () => Promise<void>;
   gameInfo: GameInfo | null;
   reloadGameInfo: () => Promise<void>;
   timeOutForPlayer: (player: number) => Promise<void>;
@@ -25,17 +26,17 @@ interface DeployContractParams {
 
 const useContractStore = create<ContractStore>((set, get) => ({
     contractAddress: null,
-    setContractAddress: (contractAddress) => set({contractAddress}),
     currentUser: null,
+    setContractAddress: (contractAddress) => set({contractAddress}),
+    getCurrentUser: async () => {
+      const provider = getProvider();
+      const signer = await provider.getSigner();
+
+      set({currentUser: await signer.getAddress()});
+    },
     gameInfo: null,
     timeOutForPlayer: async (player) => {
       const signer = await getSigner();
-
-      if (!signer) {
-        console.error("Signer not set!");
-        return;
-      }
-
       const contractWithSigner = new ethers.Contract(get().contractAddress!, RPS_CONTRACT.abi, signer);
 
       if (player === 1) {
@@ -53,27 +54,13 @@ const useContractStore = create<ContractStore>((set, get) => ({
       console.error("Invalid player")
     },
     play: async (move, value) => {
-      const signer = await getSigner();
-
-      if (!signer) {
-        console.error("Signer not set!");
-        return;
-      }
-
-      const contractWithSigner = new ethers.Contract(get().contractAddress!, RPS_CONTRACT.abi, signer);
+      const contractWithSigner = await getContract(get().contractAddress!);
 
       const tx = await contractWithSigner.play(move, {value: value});
       await tx.wait();
     },
     solve: async (move, salt) => {
-      const signer = await getSigner();
-
-      if (!signer) {
-        console.error("Signer not set!");
-        return;
-      }
-
-      const contractWithSigner = new ethers.Contract(get().contractAddress!, RPS_CONTRACT.abi, signer);
+      const contractWithSigner = await getContract(get().contractAddress!);
 
       const tx = await contractWithSigner.solve(move, salt);
       await tx.wait();
@@ -81,12 +68,6 @@ const useContractStore = create<ContractStore>((set, get) => ({
     },
     deployContract: async (info: DeployContractParams): Promise<string> => {
       const signer = await getSigner();
-
-      if (!signer) {
-        console.error("Signer not set!");
-        return '';
-      }
-
       const contractFactory = new ethers.ContractFactory(RPS_CONTRACT.abi, RPS_CONTRACT.bytecode, signer);
 
       const hash = ethers.solidityPackedKeccak256(["uint8", "uint256"], [info.move, info.salt])
@@ -126,6 +107,7 @@ const useContractStore = create<ContractStore>((set, get) => ({
   }
 ));
 
+// TODO: Handle use case where the user does not have metamask installed (custom JSON RPC)
 const getProvider = () => {
   return new ethers.BrowserProvider(window.ethereum);
 }
@@ -135,4 +117,8 @@ const getSigner = async () => {
   return await provider.getSigner();
 }
 
+const getContract = async (address: string) => {
+  const signer = await getSigner();
+  return new ethers.Contract(address, RPS_CONTRACT.abi, signer);
+}
 export default useContractStore;

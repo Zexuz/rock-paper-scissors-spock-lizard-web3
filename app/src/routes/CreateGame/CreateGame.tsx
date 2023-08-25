@@ -6,6 +6,7 @@ import {loadGame, saveGame} from "../../lib/storage.ts";
 import MoveSelector from "../../components/MoveSelector.tsx";
 import {Button} from "../../components/Button.tsx";
 import {generateSecureRandomSalt} from "../../lib/utils.ts";
+import Input from "../../components/Input.tsx";
 
 function CreateGame() {
   const [contractAddress, setContractAddress] = useState<string | null>(null)
@@ -80,24 +81,24 @@ function CreateGame() {
         <p>Secure salt: {salt}</p>
       </div>
       <div className={'flex flex-row justify-center'}>
-        <input className={'border-2 border-gray-500 rounded-lg p-2 m-2 w-1/3'}
-               type="number"
-               placeholder={'Enter custom salt to override, must be a number'}
-               onChange={(e) => onSalt(e.target.value)}/>
+        <Input
+          type="number"
+          placeholder={'Enter custom salt to override, must be a number'}
+          onChange={onSalt}/>
       </div>
 
       <div className={'flex flex-row justify-center'}>
-        <input className={'border-2 border-gray-500 rounded-lg p-2 m-2 w-1/3'}
-               type="text"
-               placeholder={'Enter amount of ETH to wager, 0.01 ETH'}
-               onChange={(e) => onVal(e.target.value)}/>
+        <Input
+          type="text"
+          placeholder={'Enter amount of ETH to wager, 0.01 ETH'}
+          onChange={onVal}/>
       </div>
 
       <div className={'flex flex-row justify-center'}>
-        <input className={'border-2 border-gray-500 rounded-lg p-2 m-2 w-1/3'}
-               type="text"
-               placeholder={'Enter opponent address'}
-               onChange={(e) => onOpponent(e.target.value)}/>
+        <Input
+          type="text"
+          placeholder={'Enter opponent address'}
+          onChange={onOpponent}/>
       </div>
 
       <MoveSelector onMoveSelect={onMoveSelect} selectedMove={move}/>
