@@ -1,7 +1,7 @@
-import Deploy from "./components/Deploy.tsx";
-import PlayMove from "./components/PlayMove.tsx";
+import Deploy from "./routes/CreateGame/CreateGame.tsx";
+import SecondPlayer from "./routes/SecondPlayer/SecondPlayer.tsx";
 import {Outlet, Route, Routes} from "react-router-dom";
-import SolveGame from "./components/SolveGame.tsx";
+import SolveGame from "./routes/SolveGame/SolveGame.tsx";
 
 
 function App() {
@@ -11,7 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Layout/>}>
           <Route index element={<Deploy/>}/>
-          <Route path="play/:contractAddress" element={<PlayMove/>}/>
+          <Route path="play/:contractAddress" element={<SecondPlayer/>}/>
           <Route path="play/:contractAddress/solve" element={<SolveGame/>}/>
           <Route path="*" element={<NoMatch/>}/>
         </Route>

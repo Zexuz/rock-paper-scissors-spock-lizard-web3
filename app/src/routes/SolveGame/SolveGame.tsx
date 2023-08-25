@@ -1,15 +1,23 @@
 import {useParams} from "react-router-dom";
-import {Button} from "./Button.tsx";
-import {Countdown} from "./Countdown.tsx";
-import useContractStore from "../store/contract.ts";
-import Loading from "./Loading.tsx";
+import useContractStore from "../../store/contract.ts";
+import {loadGame} from "../../lib/storage.ts";
 import {useEffect, useState} from "react";
-import MoveSelector from "./MoveSelector.tsx";
-import {loadGame} from "../lib/storage.ts";
+import Loading from "../../components/Loading.tsx";
+import {Countdown} from "../../components/Countdown.tsx";
+import MoveSelector from "../../components/MoveSelector.tsx";
+import {Button} from "../../components/Button.tsx";
 
 function SolveGame() {
   const {contractAddress} = useParams<string>()
-  const {gameInfo: gameData, currentUser, setContractAddress, initialize, reloadGameInfo, timeOutForPlayer, solve} = useContractStore();
+  const {
+    gameInfo: gameData,
+    currentUser,
+    setContractAddress,
+    initialize,
+    reloadGameInfo,
+    timeOutForPlayer,
+    solve
+  } = useContractStore();
   const game = loadGame(); // Only reason game could be null is if the user clears the cache, or if they are using a different browser
   const [salt, setSalt] = useState<number>(game?.salt || 0);
   const [move, setMove] = useState<number>(game?.move || 0);

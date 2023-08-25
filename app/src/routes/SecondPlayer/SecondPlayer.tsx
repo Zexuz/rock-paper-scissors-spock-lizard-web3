@@ -1,14 +1,14 @@
 import {ethers} from "ethers";
-import MoveSelector from "./MoveSelector.tsx";
 import { useNavigate, useParams} from "react-router-dom";
-import {Countdown} from "./Countdown.tsx";
-import {Button} from "./Button.tsx";
-import useContractStore from "../store/contract.ts";
 import {useEffect, useState} from "react";
-import Loading from "./Loading.tsx";
+import { Button } from "../../components/Button";
+import MoveSelector from "../../components/MoveSelector";
+import {Countdown} from "../../components/Countdown.tsx";
+import Loading from "../../components/Loading.tsx";
+import useContractStore from "../../store/contract.ts";
 
 
-function PlayMove() {
+function SecondPlayer() {
   const {contractAddress} = useParams<string>()
   const {gameInfo, currentUser, reloadGameInfo, initialize, setContractAddress, timeOutForPlayer, play} = useContractStore();
   const [move, setMove] = useState(gameInfo?.c2Move || 0);
@@ -82,4 +82,4 @@ function PlayMove() {
 }
 
 
-export default PlayMove
+export default SecondPlayer

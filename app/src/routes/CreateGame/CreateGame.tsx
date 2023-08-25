@@ -1,13 +1,13 @@
 import {ethers} from "ethers";
-import MoveSelector from "./MoveSelector.tsx";
 import {useEffect, useState} from "react";
-import useMoveStore from "../store/move.ts";
-import {Button} from "./Button.tsx";
-import useContractStore from "../store/contract.ts";
-import {useNavigate} from 'react-router-dom'
-import {loadGame, saveGame} from "../lib/storage.ts";
+import useMoveStore from "../../store/move.ts";
+import useContractStore from "../../store/contract.ts";
+import {useNavigate} from "react-router-dom";
+import {loadGame, saveGame} from "../../lib/storage.ts";
+import MoveSelector from "../../components/MoveSelector.tsx";
+import {Button} from "../../components/Button.tsx";
 
-function DeployContract() {
+function CreateGame() {
   const [contractAddress, setContractAddress] = useState<string | null>(null)
   const {setMove, createSecureRandomSalt, salt, setSalt, setOpponent, isValid, setValue, opponent, move, value} = useMoveStore();
   const {deployContract, initialize} = useContractStore();
@@ -148,4 +148,4 @@ function DeployContract() {
   )
 }
 
-export default DeployContract
+export default CreateGame
