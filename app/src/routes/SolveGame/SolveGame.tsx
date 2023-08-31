@@ -23,17 +23,20 @@ function SolveGame() {
   const [move, setMove] = useState<number>(game?.move || 0);
 
   useEffect(() => {
-    (async () => {
-      await getCurrentUser()
-      setContractAddress(contractAddress!)
-      await reloadGameInfo()
-    })()
-  }, []);
+    const initializeGameData = async () => {
+      await getCurrentUser();
+      setContractAddress(contractAddress!);
+      await reloadGameInfo();
+    };
+
+    initializeGameData();
+  }, [contractAddress]);
 
   if (!gameData) return (<Loading/>)
+  const {c2Move,player1,player2,stake,timeout,lastAction,c1Hash} = gameData;
 
-  const gameIsOver = gameData.c2Move > 0 && gameData.stake == '0.0';
-  const timeLeft = gameData.timeout - (Math.floor(Date.now() / 1000) - gameData.lastAction);
+  const gameIsOver = c2Move > 0 && stake == '0.0';
+  const timeLeft = timeout - (Math.floor(Date.now() / 1000) - lastAction);
 
   const onSolve = async () => {
     await solve(move, salt);
@@ -64,12 +67,12 @@ function SolveGame() {
         <h2 className="text-2xl font-bold mb-4 text-center">Game Information</h2>
 
         <div className="flex flex-wrap -mx-2">
-          <GameInfoField label="Player 1" data={gameData.player1}/>
-          <GameInfoField label="Player 2" data={gameData.player2}/>
-          <GameInfoField label="C1 Hash" data={gameData.c1Hash}/>
-          <GameInfoField label="C2 Move" data={gameData.c2Move}/>
-          <GameInfoField label="Stake" data={`${gameData.stake} ETH`}/>
-          <GameInfoField label="Last Action" data={new Date(gameData.lastAction * 1000).toLocaleString()}/>
+          <GameInfoField label="Player 1" data={player1}/>
+          <GameInfoField label="Player 2" data={player2}/>
+          <GameInfoField label="C1 Hash" data={c1Hash}/>
+          <GameInfoField label="C2 Move" data={c2Move}/>
+          <GameInfoField label="Stake" data={`${stake} ETH`}/>
+          <GameInfoField label="Last Action" data={new Date(lastAction * 1000).toLocaleString()}/>
           <GameInfoField label="Time left to solve" data={<Countdown timeLeft={timeLeft}/>}/>
         </div>
       </div>
@@ -80,7 +83,7 @@ function SolveGame() {
         </div>
       )}
 
-      {(currentUser === gameData.player1 && !gameIsOver) && (
+      {(currentUser === player1 && !gameIsOver) && (
         <>
           <div className="flex flex-row justify-center mb-4">
             <input
@@ -100,13 +103,13 @@ function SolveGame() {
         </>
       )}
 
-      {(currentUser === gameData.player2 && !gameIsOver) && (
+      {(currentUser === player2 && !gameIsOver) && (
         <div className="flex flex-row justify-center mt-4">
           <Button onClick={claimTimeout} disabled={timeLeft > 0}>Claim timeout</Button>
         </div>
       )}
 
-      {currentUser !== gameData.player1 && currentUser !== gameData.player2 && (
+      {currentUser !== player1 && currentUser !== player2 && (
         <div className="text-center bg-yellow-100 p-4 rounded-md mb-4">
           <p className="text-yellow-600 text-2xl font-bold">Not your game</p>
         </div>

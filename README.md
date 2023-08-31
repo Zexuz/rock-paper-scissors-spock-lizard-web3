@@ -26,7 +26,7 @@ In a perfect world where no outside event could impact this game, the best strat
 
 However, there are a couple of non-zero chances that could happen that would make this game not %100 random, and therefore exploitable.
 * The other player is not playing randomly
-* The other player is not using a secure salt
+* The creator is not using a secure salt
 * The creator forgets to solve before the deadline
 * The creator forgets the salt
 
