@@ -1,25 +1,35 @@
 import {useState} from "react";
-import useContractStore from "../../store/contract.ts";
 import {useNavigate} from "react-router-dom";
 import {loadGame, saveGame} from "../../lib/storage.ts";
 import {Button} from "../../components/Button.tsx";
 import GameInputForm, {FormState} from "./components/GameInputForm";
+import {setErrorSnackbar, setSuccessSnackbar} from "../../store/uiSlice";
+import {useDispatch} from "react-redux";
+import {deployContract} from "../../lib/web3";
 
 function CreateGame() {
   const [contractAddress, setContractAddress] = useState<string | null>(null)
   const [hasDeployed, setHasDeployed] = useState(false)
   const navigate = useNavigate()
+  const dispatch = useDispatch();
   const lastGame = loadGame();
 
-  const {deployContract} = useContractStore();
-
   const onFormSubmit = async ({salt, value, opponent, move}: FormState) => {
-    const contractAddress = await deployContract({
-      salt,
-      move,
-      opponent,
-      value,
-    })
+
+    let contractAddress = null;
+    try {
+      contractAddress = await deployContract({
+        salt,
+        move,
+        opponent,
+        value,
+      })
+      dispatch(setSuccessSnackbar("Contract deployed successfully"));
+    } catch (e) {
+      dispatch(setErrorSnackbar("Error deploying contract"));
+      console.error(e);
+      return;
+    }
 
     setContractAddress(contractAddress)
     setHasDeployed(true)

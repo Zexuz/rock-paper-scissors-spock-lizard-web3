@@ -33,7 +33,7 @@ function SolveGame() {
   }, [contractAddress]);
 
   if (!gameData) return (<Loading/>)
-  const {c2Move,player1,player2,stake,timeout,lastAction,c1Hash} = gameData;
+  const {c2Move, player1, player2, stake, timeout, lastAction, c1Hash} = gameData;
 
   const gameIsOver = c2Move > 0 && stake == '0.0';
   const timeLeft = timeout - (Math.floor(Date.now() / 1000) - lastAction);
@@ -61,6 +61,24 @@ function SolveGame() {
   }
 
 
+  const moveToString = (move: number) => {
+    switch (move) {
+      case 1:
+        return "Rock";
+      case 2:
+        return "Paper";
+      case 3:
+        return "Scissors";
+      case 4:
+        return "Spock";
+      case 5:
+        return "Lizard";
+      default:
+        return "Unknown";
+    }
+
+  }
+
   return (
     <>
       <div className="p-4 bg-gray-100 rounded-lg shadow-md">
@@ -70,7 +88,7 @@ function SolveGame() {
           <GameInfoField label="Player 1" data={player1}/>
           <GameInfoField label="Player 2" data={player2}/>
           <GameInfoField label="C1 Hash" data={c1Hash}/>
-          <GameInfoField label="C2 Move" data={c2Move}/>
+          <GameInfoField label="C2 Move" data={moveToString(c2Move)}/>
           <GameInfoField label="Stake" data={`${stake} ETH`}/>
           <GameInfoField label="Last Action" data={new Date(lastAction * 1000).toLocaleString()}/>
           <GameInfoField label="Time left to solve" data={<Countdown timeLeft={timeLeft}/>}/>

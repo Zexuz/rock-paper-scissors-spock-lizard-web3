@@ -13,16 +13,8 @@ interface ContractStore {
   timeOutForPlayer: (player: number) => Promise<void>;
   solve: (move: number, salt: BigNumberish) => Promise<void>;
   play: (move: number, value: BigNumberish) => Promise<void>;
-  deployContract: (info: DeployContractParams) => Promise<string>;
 }
 
-
-interface DeployContractParams {
-  move: number,
-  salt: number,
-  opponent: string,
-  value: BigNumberish,
-}
 
 const useContractStore = create<ContractStore>((set, get) => ({
     contractAddress: null,
@@ -66,23 +58,9 @@ const useContractStore = create<ContractStore>((set, get) => ({
       await tx.wait();
 
     },
-    deployContract: async (info: DeployContractParams): Promise<string> => {
-      const signer = await getSigner();
-      const contractFactory = new ethers.ContractFactory(RPS_CONTRACT.abi, RPS_CONTRACT.bytecode, signer);
-
-      const hash = ethers.solidityPackedKeccak256(["uint8", "uint256"], [info.move, info.salt])
-
-      const contract = await contractFactory.deploy(hash, info.opponent, {
-        value: info.value,
-      });
-
-      return contract.target.toString();
-    },
     reloadGameInfo: async () => {
-      const provider = getProvider();
       const contractAddress = get().contractAddress!;
-
-      const contract = new ethers.Contract(contractAddress, RPS_CONTRACT.abi, provider);
+      const contract = await getContract(contractAddress)
 
       const j1 = await contract.j1();
       const j2 = await contract.j2();
@@ -118,7 +96,21 @@ const getSigner = async () => {
 }
 
 const getContract = async (address: string) => {
+  if (window.ethereum === undefined) {
+    return await getReadOnlyContract(address);
+  }
+
+  return await getWriteContract(address);
+}
+
+const getReadOnlyContract = async (address: string) => {
+  const provider = getProvider();
+  return new ethers.Contract(address, RPS_CONTRACT.abi, provider);
+}
+
+const getWriteContract = async (address: string) => {
   const signer = await getSigner();
   return new ethers.Contract(address, RPS_CONTRACT.abi, signer);
 }
+
 export default useContractStore;

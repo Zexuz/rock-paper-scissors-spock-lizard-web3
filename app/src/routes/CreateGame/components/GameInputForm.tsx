@@ -77,7 +77,7 @@ const GameInputForm = ({onFormSubmit, hasDeployed}: GameInputFormProps) => {
 
       {!hasDeployed && (
         <div className={'flex flex-row justify-center'}>
-          <Button onClick={handleSubmit} disabled={!isValid}>D</Button>
+          <Button onClick={handleSubmit} disabled={!isValid}>Deploy</Button>
         </div>
       )}
     </>
