@@ -33,6 +33,8 @@ function SolveGame() {
   const [salt, setSalt] = useState<number>(game?.salt || 0);
   const [move, setMove] = useState<number>(game?.move || 0);
 
+  const onMoveChanged = useCallback((move: number) => setMove(move), []);
+
   if (loading) return (<Loading/>)
   const {c2Move, player1, player2, stake, timeout, lastAction, c1Hash} = gameInfo;
 
@@ -56,8 +58,6 @@ function SolveGame() {
 
     setSalt(saltNumber);
   }
-
-  const onMoveChanged = useCallback((move: number) => setMove(move), []);
 
 
   const moveToString = (move: number) => {
