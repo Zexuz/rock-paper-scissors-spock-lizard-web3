@@ -15,7 +15,6 @@ npx hardhat run scripts/deploy.ts
 Use Sepolia network to test the contract. 
 
 ## Notes
-* All `console.error` would have been toasts, or snackbars, or something else, but I didn't want to spend the time to set that up.
 * The deployers salt is generated automatically, and stored in local storage, so that if the user uses our secure salt, it gets stored in the browser, but also have the option to use their own salt, which they might remember better.
 * I would also like to wait for the transaction to be completed before we move on to the next page
 * Even tho there was no CSS (and UX?) requirement, I could not help myself and added some CSS to make it look a little better, even tho it took away some time from the actual logic.

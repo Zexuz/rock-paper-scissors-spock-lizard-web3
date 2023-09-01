@@ -1,50 +1,51 @@
 import {useParams} from "react-router-dom";
-import useContractStore from "../../store/contract.ts";
 import {loadGame} from "../../lib/storage.ts";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import Loading from "../../components/Loading.tsx";
 import {Countdown} from "../../components/Countdown.tsx";
 import MoveSelector from "../../components/MoveSelector.tsx";
 import {Button} from "../../components/Button.tsx";
+import {useDispatch} from "react-redux";
+import {AppDispatch, useAppSelector} from "../../store/store.ts";
+import {fetchGameInfo} from "../../store/RpsContractSlice.ts";
+import {RpsFactory} from "../../lib/rps.ts";
+import {getCurrentUser} from "../../store/web3Slice.ts";
+import {GameInfoField} from "./components/GameInfoField.tsx";
+import {usePerformAsyncAction} from "../../hooks/usePerformAsyncAction.ts";
 
 function SolveGame() {
+  const dispatch = useDispatch<AppDispatch>();
+  const performAction = usePerformAsyncAction();
+
   const {contractAddress} = useParams<string>()
-  const {
-    gameInfo: gameData,
-    currentUser,
-    getCurrentUser,
-    setContractAddress,
-    reloadGameInfo,
-    timeOutForPlayer,
-    solve
-  } = useContractStore();
+
+  useEffect(() => {
+    dispatch(fetchGameInfo(contractAddress!));
+    dispatch(getCurrentUser());
+  }, []);
+
+  const gameInfo = useAppSelector((state) => state.rpsContract.GameInfo);
+  const loading = useAppSelector((state) => state.rpsContract.loading);
+  const currentUser = useAppSelector((state) => state.web3.currentUser);
+
+
   const game = loadGame(); // Only reason game could be null is if the user clears the cache, or if they are using a different browser
   const [salt, setSalt] = useState<number>(game?.salt || 0);
   const [move, setMove] = useState<number>(game?.move || 0);
 
-  useEffect(() => {
-    const initializeGameData = async () => {
-      await getCurrentUser();
-      setContractAddress(contractAddress!);
-      await reloadGameInfo();
-    };
-
-    initializeGameData();
-  }, [contractAddress]);
-
-  if (!gameData) return (<Loading/>)
-  const {c2Move, player1, player2, stake, timeout, lastAction, c1Hash} = gameData;
+  if (loading) return (<Loading/>)
+  const {c2Move, player1, player2, stake, timeout, lastAction, c1Hash} = gameInfo;
 
   const gameIsOver = c2Move > 0 && stake == '0.0';
   const timeLeft = timeout - (Math.floor(Date.now() / 1000) - lastAction);
 
-  const onSolve = async () => {
-    await solve(move, salt);
-  }
+  const onSolve = () => performAction(async () => {
+    await (await RpsFactory.getReadWriteContract(contractAddress!)).Solve(move, salt)
+  });
 
-  const claimTimeout = async () => {
-    await timeOutForPlayer(1);
-  }
+  const claimTimeout = () => performAction(async () => {
+    await (await RpsFactory.getReadWriteContract(contractAddress!)).TimeOutForPlayer1()
+  });
 
   const onSaltChange = (salt: string) => {
     const saltNumber = Number(salt);
@@ -56,9 +57,7 @@ function SolveGame() {
     setSalt(saltNumber);
   }
 
-  const onMoveChanged = (move: number) => {
-    setMove(move);
-  }
+  const onMoveChanged = useCallback((move: number) => setMove(move), []);
 
 
   const moveToString = (move: number) => {
@@ -135,13 +134,6 @@ function SolveGame() {
     </>
   );
 }
-
-const GameInfoField = ({label, data}: { label: string, data: string | number | React.ReactNode }) => (
-  <div className="w-1/2 px-2 mb-4">
-    <label className="block text-gray-600">{label}</label>
-    <span className="text-gray-800">{data}</span>
-  </div>
-);
 
 
 export default SolveGame
