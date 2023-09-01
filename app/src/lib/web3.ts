@@ -21,7 +21,6 @@ export const getSigner = async () => {
   const provider = getProvider();
   return await provider.getSigner();
 }
-// Lets say i want to deploy a contract with a dispatch, how can I reflect the progress of that in the UI?
 
 interface DeployContractParams {
   move: number,
