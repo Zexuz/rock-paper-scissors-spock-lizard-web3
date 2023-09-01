@@ -1,56 +1,35 @@
-import {BigNumberish, ethers} from "ethers";
 import {useState} from "react";
-import useContractStore from "../../store/contract.ts";
 import {useNavigate} from "react-router-dom";
 import {loadGame, saveGame} from "../../lib/storage.ts";
-import MoveSelector from "../../components/MoveSelector.tsx";
 import {Button} from "../../components/Button.tsx";
-import {generateSecureRandomSalt} from "../../lib/utils.ts";
-import Input from "../../components/Input.tsx";
+import GameInputForm, {FormState} from "./components/GameInputForm";
+import {setErrorSnackbar, setSuccessSnackbar} from "../../store/uiSlice";
+import {useDispatch} from "react-redux";
+import {deployContract} from "../../lib/web3";
 
 function CreateGame() {
   const [contractAddress, setContractAddress] = useState<string | null>(null)
   const [hasDeployed, setHasDeployed] = useState(false)
-  const [salt, setSalt] = useState(generateSecureRandomSalt())
-  const [move, setMove] = useState(0)
-  const [opponent, setOpponent] = useState("")
-  const [value, setValue] = useState<BigNumberish>(0)
   const navigate = useNavigate()
+  const dispatch = useDispatch();
   const lastGame = loadGame();
 
-  const {deployContract} = useContractStore();
+  const onFormSubmit = async ({salt, value, opponent, move}: FormState) => {
 
-  const onMoveSelect = (move: number) => {
-    setMove(move)
-  }
-
-  const onSalt = (salt: string) => {
-    const saltNumber = Number(salt)
-    if (isNaN(saltNumber)) {
-      console.error("Salt is not a number")
+    let contractAddress = null;
+    try {
+      contractAddress = await deployContract({
+        salt,
+        move,
+        opponent,
+        value,
+      })
+      dispatch(setSuccessSnackbar("Contract deployed successfully"));
+    } catch (e) {
+      dispatch(setErrorSnackbar("Error deploying contract"));
+      console.error(e);
       return;
     }
-
-    setSalt(saltNumber)
-  }
-
-  const onOpponent = (opponent: string) => {
-    setOpponent(opponent)
-  }
-
-  const onVal = (val: string) => {
-    const ethVal = ethers.parseEther(val)
-    setValue(ethVal)
-  }
-
-  const deploy = async () => {
-
-    const contractAddress = await deployContract({
-      salt,
-      move,
-      opponent,
-      value,
-    })
 
     setContractAddress(contractAddress)
     setHasDeployed(true)
@@ -73,41 +52,10 @@ function CreateGame() {
     navigator.clipboard.writeText(`${window.location.href}play/${contractAddress}`);
   }
 
-  const isValid = move > 0 && salt > 0 && opponent.length > 0;
 
   return (
     <>
-      <div className={'flex flex-row justify-center'}>
-        <p>Secure salt: {salt}</p>
-      </div>
-      <div className={'flex flex-row justify-center'}>
-        <Input
-          type="number"
-          placeholder={'Enter custom salt to override, must be a number'}
-          onChange={onSalt}/>
-      </div>
-
-      <div className={'flex flex-row justify-center'}>
-        <Input
-          type="text"
-          placeholder={'Enter amount of ETH to wager, 0.01 ETH'}
-          onChange={onVal}/>
-      </div>
-
-      <div className={'flex flex-row justify-center'}>
-        <Input
-          type="text"
-          placeholder={'Enter opponent address'}
-          onChange={onOpponent}/>
-      </div>
-
-      <MoveSelector onMoveSelect={onMoveSelect} selectedMove={move}/>
-
-      {!hasDeployed && (
-        <div className={'flex flex-row justify-center'}>
-          <Button onClick={deploy} disabled={!isValid}>DEPLOY</Button>
-        </div>
-      )}
+      <GameInputForm onFormSubmit={onFormSubmit} hasDeployed={hasDeployed}/>
 
       {hasDeployed && (
         <div className={'flex flex-row justify-center'}>
